@@ -4,58 +4,275 @@
 <meta charset="UTF-8">
 <title>Calculadora de Provas — Triathlon</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=switzer@300,400,500,600,700,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f3f0;
+  --surface:#ffffff;
+  --border:#e2e0da;
+  --text:#1c1c1e;
+  --text-2:#5b5a56;
+  --text-muted:#8f8d87;
+  --accent:#2b2b2b;
+  --accent-bg:#eceae6;
+  --accent-dark:#141414;
+  --radius-lg:18px;
+  --radius-md:12px;
+  --radius-sm:8px;
+  --font-display:'Switzer', system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono:'Space Mono', "SFMono-Regular", Consolas, monospace;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  padding:56px 20px 90px;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-display);
+  -webkit-font-smoothing:antialiased;
+}
+.page{max-width:920px; margin:0 auto;}
+
+header{margin-bottom:36px;}
+.eyebrow{
+  display:inline-flex; align-items:center; gap:7px;
+  font-family:var(--font-mono);
+  font-size:11px; font-weight:700; color:var(--accent-dark);
+  background:var(--accent-bg); border:1px solid rgba(0,0,0,0.1);
+  padding:5px 12px; border-radius:999px; margin-bottom:18px;
+  text-transform:uppercase; letter-spacing:0.04em;
+}
+.eyebrow::before{content:""; width:6px; height:6px; border-radius:50%; background:var(--accent); flex-shrink:0;}
+h1{font-family:var(--font-display); font-size:38px; font-weight:500; margin:0 0 12px; letter-spacing:-0.02em; line-height:1.1;}
+.subtitle{font-size:15.5px; color:var(--text-2); margin:0; max-width:46ch; line-height:1.55;}
+
+.layout{
+  display:grid;
+  grid-template-columns:1fr 300px;
+  gap:20px;
+  align-items:start;
+}
+@media (max-width:860px){
+  .layout{grid-template-columns:1fr;}
+  .col-summary{position:sticky; top:0; z-index:5; margin:0 -20px 20px; padding:14px 20px 16px; background:linear-gradient(var(--bg) 75%, transparent);}
+}
+
+.col-main{display:flex; flex-direction:column; gap:20px;}
+
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:26px 28px;
+  box-shadow:0 1px 2px rgba(20,20,15,0.03), 0 12px 28px -18px rgba(20,20,15,0.12);
+}
+.card h2{
+  font-family:var(--font-mono);
+  font-size:11.5px; font-weight:700; margin:0 0 18px;
+  color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em;
+}
+
+.presets{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; margin-bottom:10px;}
+.preset-btn{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md);
+  padding:13px 10px; font-family:inherit; font-size:14px; font-weight:600; color:var(--text-2);
+  cursor:pointer; text-align:center; transition:border-color .12s, background-color .12s, color .12s, transform .12s, box-shadow .12s;
+}
+.preset-btn:hover{border-color:var(--accent); transform:translateY(-1px); box-shadow:0 4px 10px -4px rgba(0,0,0,0.18);}
+.preset-btn:active{transform:translateY(0);}
+.preset-btn.active{background:var(--accent-bg); border-color:var(--accent); color:var(--accent-dark);}
+.preset-dist{font-family:var(--font-mono); font-size:10.5px; font-weight:400; color:var(--text-muted); display:block; margin-top:4px; letter-spacing:0.02em;}
+.preset-btn.active .preset-dist{color:var(--accent-dark);}
+
+.dist-row{display:flex; gap:20px; margin-top:16px; padding-top:16px; border-top:1px solid var(--border); font-family:var(--font-mono); font-size:12px; color:var(--text-2); flex-wrap:wrap;}
+.dist-row b{color:var(--text); font-weight:700;}
+
+.field-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:18px;}
+.field{display:flex; flex-direction:column; gap:7px;}
+.field label{font-family:var(--font-mono); font-size:11px; color:var(--text-muted); font-weight:400; letter-spacing:0.01em;}
+.field .unit{font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted); font-weight:400;}
+input[type=text]{
+  border:1px solid var(--border); border-radius:var(--radius-sm); padding:11px 12px; font-size:15px;
+  font-family:inherit; font-variant-numeric:tabular-nums; color:var(--text); background:var(--bg); width:100%;
+  transition:border-color .12s, background-color .12s, box-shadow .12s;
+}
+input[type=text]:hover{border-color:#c9c7bf;}
+input[type=text]:focus{outline:none; border-color:var(--accent); background:var(--surface); box-shadow:0 0 0 3px var(--accent-bg);}
+
+/* Sticky live summary */
+.col-summary{align-self:start;}
+.summary-card{
+  position:sticky; top:24px;
+  background:var(--accent-dark);
+  color:#fff;
+  border-radius:var(--radius-lg);
+  padding:26px 24px;
+  box-shadow:0 1px 2px rgba(0,0,0,0.25), 0 16px 32px -12px rgba(0,0,0,0.45);
+}
+.summary-card h2{
+  display:flex; align-items:center; gap:7px;
+  font-family:var(--font-mono);
+  font-size:11px; font-weight:700; margin:0 0 16px; color:rgba(255,255,255,0.65);
+  text-transform:uppercase; letter-spacing:0.04em;
+}
+.summary-card h2::before{
+  content:""; width:6px; height:6px; border-radius:50%; background:#ffffff;
+  box-shadow:0 0 0 3px rgba(255,255,255,0.2);
+}
+.total-label{display:block; font-family:var(--font-mono); font-size:11.5px; color:rgba(255,255,255,0.6); margin-bottom:6px; letter-spacing:0.02em;}
+.total-value{
+  display:block; font-family:var(--font-display); font-size:42px; font-weight:800; letter-spacing:-0.02em; margin-bottom:20px;
+  font-variant-numeric:tabular-nums; line-height:1;
+}
+
+.legs{list-style:none; margin:0; padding:16px 0 0; border-top:1px solid rgba(255,255,255,0.16);}
+.legs li{
+  display:flex; justify-content:space-between; align-items:baseline;
+  font-family:var(--font-mono); font-size:12.5px; padding:8px 0; color:rgba(255,255,255,0.92);
+  font-variant-numeric:tabular-nums;
+}
+.legs li + li{border-top:1px solid rgba(255,255,255,0.08);}
+.legs li .leg-name{color:rgba(255,255,255,0.62); font-variant-numeric:normal;}
+.legs li .leg-cum{font-size:10.5px; color:rgba(255,255,255,0.48); margin-left:8px;}
+
+footer{text-align:center; font-size:12px; color:var(--text-muted); margin-top:36px; letter-spacing:0.02em;}
+</style>
 </head>
 <body>
-<div class="wrap">
-  <h1>Calculadora de Prova — Triathlon</h1>
-  <p class="subtitle">Escolha a prova, ajuste os seus paces e veja o tempo estimado de cada etapa.</p>
+<div class="page">
+  <header>
+    <span class="eyebrow">Calculadora pessoal</span>
+    <h1>Calculadora de Prova — Triathlon</h1>
+    <p class="subtitle">Escolha a prova, ajuste os seus paces e acompanhe o tempo estimado em tempo real.</p>
+  </header>
 
-  <div class="card">
-    <h2>Distância da prova</h2>
-    <div class="presets" id="presets"></div>
-    <div class="dist-row" id="distRow"></div>
-  </div>
+  <div class="layout">
+    <div class="col-main">
+      <div class="card">
+        <h2>Distância da prova</h2>
+        <div class="presets" id="presets"></div>
+        <div class="dist-row" id="distRow"></div>
+      </div>
 
-  <div class="card">
-    <h2>Seus paces</h2>
-    <div class="field-grid">
-      <div class="field">
-        <label>Natação <span class="unit">(min:seg / 100m)</span></label>
-        <input type="text" id="swimPace" value="2:00">
-      </div>
-      <div class="field">
-        <label>Transição 1 <span class="unit">(min:seg)</span></label>
-        <input type="text" id="t1" value="2:00">
-      </div>
-      <div class="field">
-        <label>Bike <span class="unit">(km/h)</span></label>
-        <input type="text" id="bikeSpeed" value="25">
-      </div>
-      <div class="field">
-        <label>Transição 2 <span class="unit">(min:seg)</span></label>
-        <input type="text" id="t2" value="2:00">
-      </div>
-      <div class="field">
-        <label>Corrida <span class="unit">(min:seg / km)</span></label>
-        <input type="text" id="runPace" value="5:00">
+      <div class="card">
+        <h2>Seus paces</h2>
+        <div class="field-grid">
+          <div class="field">
+            <label>Natação <span class="unit">(min:seg / 100m)</span></label>
+            <input type="text" id="swimPace" value="2:00">
+          </div>
+          <div class="field">
+            <label>Transição 1 <span class="unit">(min:seg)</span></label>
+            <input type="text" id="t1" value="2:00">
+          </div>
+          <div class="field">
+            <label>Bike <span class="unit">(km/h)</span></label>
+            <input type="text" id="bikeSpeed" value="25">
+          </div>
+          <div class="field">
+            <label>Transição 2 <span class="unit">(min:seg)</span></label>
+            <input type="text" id="t2" value="2:00">
+          </div>
+          <div class="field">
+            <label>Corrida <span class="unit">(min:seg / km)</span></label>
+            <input type="text" id="runPace" value="5:00">
+          </div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="card">
-    <h2>Tempo estimado</h2>
-    <table>
-      <thead>
-        <tr><th>Etapa</th><th>Tempo</th><th>Acumulado</th></tr>
-      </thead>
-      <tbody id="resultsBody"></tbody>
-    </table>
+    <aside class="col-summary">
+      <div class="summary-card">
+        <h2>Tempo estimado</h2>
+        <span class="total-label">Tempo total</span>
+        <span class="total-value" id="totalValue">0:00</span>
+        <ul class="legs" id="legsList"></ul>
+      </div>
+    </aside>
   </div>
 
   <footer>Leandro Paes @ 2026</footer>
 </div>
 
-<script src="script.js"></script>
+<script>
+const PRESETS = [
+  { name:'Sprint',       swim:750,  bike:20,  run:5 },
+  { name:'Olímpico',     swim:1500, bike:40,  run:10 },
+  { name:'Meio Ironman', swim:1900, bike:90,  run:21.1 },
+  { name:'Ironman',      swim:3800, bike:180, run:42.2 }
+];
+let activeIdx = 0;
+
+function parseMS(str){
+  if(!str) return 0;
+  const parts = str.split(':').map(Number);
+  if(parts.length===2) return parts[0]*60+parts[1];
+  return Number(str)||0;
+}
+function fmtHMS(totalSec){
+  totalSec = Math.round(totalSec);
+  const h = Math.floor(totalSec/3600);
+  const m = Math.floor((totalSec%3600)/60);
+  const s = totalSec%60;
+  const mm = String(m).padStart(2,'0');
+  const ss = String(s).padStart(2,'0');
+  return h>0 ? `${h}:${mm}:${ss}` : `${m}:${ss}`;
+}
+
+function renderPresets(){
+  const el = document.getElementById('presets');
+  el.innerHTML = '';
+  PRESETS.forEach((p,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'preset-btn' + (i===activeIdx ? ' active' : '');
+    btn.innerHTML = `${p.name}<span class="preset-dist">${p.swim>=1000 ? (p.swim/1000)+'km' : p.swim+'m'} · ${p.bike}km · ${p.run}km</span>`;
+    btn.addEventListener('click', ()=>{ activeIdx=i; renderPresets(); calculate(); });
+    el.appendChild(btn);
+  });
+  const p = PRESETS[activeIdx];
+  document.getElementById('distRow').innerHTML =
+    `<span>Natação: <b>${p.swim} m</b></span><span>Bike: <b>${p.bike} km</b></span><span>Corrida: <b>${p.run} km</b></span>`;
+}
+
+function calculate(){
+  const p = PRESETS[activeIdx];
+  const swimSecPer100 = parseMS(document.getElementById('swimPace').value);
+  const t1Sec = parseMS(document.getElementById('t1').value);
+  const bikeSpeed = Number(document.getElementById('bikeSpeed').value) || 0;
+  const t2Sec = parseMS(document.getElementById('t2').value);
+  const runSecPerKm = parseMS(document.getElementById('runPace').value);
+
+  const swimSec = (p.swim/100) * swimSecPer100;
+  const bikeSec = bikeSpeed>0 ? (p.bike/bikeSpeed)*3600 : 0;
+  const runSec = p.run * runSecPerKm;
+
+  const legs = [
+    ['Natação', swimSec],
+    ['T1', t1Sec],
+    ['Bike', bikeSec],
+    ['T2', t2Sec],
+    ['Corrida', runSec]
+  ];
+
+  let cum = 0;
+  const list = document.getElementById('legsList');
+  list.innerHTML = '';
+  legs.forEach(([name,sec])=>{
+    cum += sec;
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="leg-name">${name}</span><span>${fmtHMS(sec)}<span class="leg-cum">(${fmtHMS(cum)})</span></span>`;
+    list.appendChild(li);
+  });
+
+  document.getElementById('totalValue').textContent = fmtHMS(cum);
+}
+
+document.querySelectorAll('input').forEach(inp=> inp.addEventListener('input', calculate));
+renderPresets();
+calculate();
+</script>
 </body>
 </html>
