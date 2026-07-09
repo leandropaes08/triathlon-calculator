@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <link href="https://api.fontshare.com/v2/css?f[]=switzer@300,400,500,600,700,800&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -37,7 +39,7 @@ body{
 .page{max-width:920px; margin:0 auto;}
 
 header{margin-bottom:36px;}
-h1{font-family:var(--font-display); font-size:26px; font-weight:500; margin:0 0 12px; letter-spacing:-0.02em; line-height:1.1;}
+h1{font-family:'Google Sans Flex', var(--font-display); font-size:26px; font-weight:500; margin:0 0 12px; letter-spacing:-0.02em; line-height:1.1;}
 .subtitle{font-size:15.5px; color:var(--text-2); margin:0; max-width:46ch; line-height:1.55;}
 
 .layout{
@@ -61,10 +63,20 @@ h1{font-family:var(--font-display); font-size:26px; font-weight:500; margin:0 0 
   box-shadow:0 1px 2px rgba(20,20,15,0.03), 0 12px 28px -18px rgba(20,20,15,0.12);
 }
 .card h2{
-  font-family:var(--font-mono);
+  font-family:'Roboto', var(--font-mono);
   font-size:11.5px; font-weight:700; margin:0 0 18px;
   color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em;
 }
+.card-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;}
+.card-head h2{margin-bottom:0;}
+.reset-btn{
+  font-family:'Roboto', var(--font-mono); font-size:10.5px; font-weight:600;
+  text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted);
+  background:none; border:none; cursor:pointer; padding:0;
+  text-decoration:underline; text-underline-offset:2px;
+  transition:color .12s;
+}
+.reset-btn:hover{color:var(--accent-dark);}
 
 .presets{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; margin-bottom:10px;}
 .preset-btn{
@@ -96,6 +108,26 @@ input[type=text]{
 }
 input[type=text]:hover{border-color:#c9c7bf;}
 input[type=text]:focus{outline:none; border-color:var(--accent); background:var(--surface); box-shadow:0 0 0 3px var(--accent-bg);}
+input[type=text].invalid{border-color:#c23b3b;}
+input[type=text].invalid:focus{border-color:#c23b3b; box-shadow:0 0 0 3px rgba(194,59,59,0.14);}
+
+.pace-track{
+  position:relative; height:3px; border-radius:999px; background:var(--border);
+  margin-top:11px; cursor:pointer; touch-action:none;
+}
+.pace-track::before{
+  content:""; position:absolute; left:0; right:0; top:-9px; bottom:-9px;
+}
+.pace-fill{
+  position:absolute; left:0; top:0; bottom:0; width:0%;
+  border-radius:inherit; background:var(--accent); pointer-events:none;
+}
+.pace-handle{
+  position:absolute; top:50%; left:0%; width:9px; height:9px; border-radius:50%;
+  background:var(--accent-dark); box-shadow:0 0 0 2px var(--surface);
+  transform:translate(-50%,-50%); pointer-events:none; transition:background-color .12s;
+}
+.pace-track:hover .pace-handle{background:var(--accent);}
 @media (max-width:480px){
   .field-grid{grid-template-columns:1fr 1fr; gap:14px 16px;}
   .field label{
@@ -140,7 +172,18 @@ input[type=text]:focus{outline:none; border-color:var(--accent); background:var(
 .legs li .leg-name{color:rgba(255,255,255,0.62); font-variant-numeric:normal;}
 .legs li .leg-cum{font-size:10.5px; color:rgba(255,255,255,0.48); margin-left:8px;}
 
-footer{text-align:center; font-size:12px; color:var(--text-muted); margin-top:36px; letter-spacing:0.02em;}
+footer{
+  display:flex; align-items:center; justify-content:center; gap:16px; flex-wrap:wrap;
+  text-align:center; font-size:12px; color:var(--text-muted); margin-top:36px; letter-spacing:0.02em;
+}
+.social{
+  display:inline-flex; align-items:center; gap:6px;
+  color:var(--text-muted); text-decoration:none;
+  font-family:var(--font-mono); font-size:11.5px; letter-spacing:0.01em;
+  transition:color .15s;
+}
+.social:hover{color:var(--accent-dark);}
+.social svg{width:14px; height:14px; flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -159,27 +202,50 @@ footer{text-align:center; font-size:12px; color:var(--text-muted); margin-top:36
       </div>
 
       <div class="card">
-        <h2>Seus paces</h2>
+        <div class="card-head">
+          <h2>Seus paces</h2>
+          <button type="button" class="reset-btn" id="resetBtn">Restaurar padrão</button>
+        </div>
         <div class="field-grid">
           <div class="field">
             <label>Natação <span class="unit">(min:seg / 100m)</span></label>
             <input type="text" id="swimPace" value="2:00">
+            <div class="pace-track" data-target="swimPace" data-kind="time" data-min="60" data-max="240">
+              <div class="pace-fill"></div>
+              <div class="pace-handle"></div>
+            </div>
           </div>
           <div class="field">
             <label>Transição 1 <span class="unit">(min:seg)</span></label>
             <input type="text" id="t1" value="2:00">
+            <div class="pace-track" data-target="t1" data-kind="time" data-min="0" data-max="300">
+              <div class="pace-fill"></div>
+              <div class="pace-handle"></div>
+            </div>
           </div>
           <div class="field">
             <label>Bike <span class="unit">(km/h)</span></label>
             <input type="text" id="bikeSpeed" value="25">
+            <div class="pace-track" data-target="bikeSpeed" data-kind="number" data-min="10" data-max="45">
+              <div class="pace-fill"></div>
+              <div class="pace-handle"></div>
+            </div>
           </div>
           <div class="field">
             <label>Transição 2 <span class="unit">(min:seg)</span></label>
             <input type="text" id="t2" value="2:00">
+            <div class="pace-track" data-target="t2" data-kind="time" data-min="0" data-max="300">
+              <div class="pace-fill"></div>
+              <div class="pace-handle"></div>
+            </div>
           </div>
           <div class="field">
             <label>Corrida <span class="unit">(min:seg / km)</span></label>
             <input type="text" id="runPace" value="5:00">
+            <div class="pace-track" data-target="runPace" data-kind="time" data-min="180" data-max="480">
+              <div class="pace-fill"></div>
+              <div class="pace-handle"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -195,7 +261,17 @@ footer{text-align:center; font-size:12px; color:var(--text-muted); margin-top:36
     </aside>
   </div>
 
-  <footer>Leandro Paes @ 2026</footer>
+  <footer>
+    <span>Leandro Paes @ 2026</span>
+    <a class="social" href="https://instagram.com/leandropaes_" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2.5" y="2.5" width="19" height="19" rx="5"></rect>
+        <circle cx="12" cy="12" r="4.2"></circle>
+        <circle cx="17.3" cy="6.7" r="0.6" fill="currentColor" stroke="none"></circle>
+      </svg>
+      <span>@leandropaes_</span>
+    </a>
+  </footer>
 </div>
 
 <script>
@@ -207,11 +283,64 @@ const PRESETS = [
 ];
 let activeIdx = 0;
 
+const DEFAULTS = { swimPace:'2:00', t1:'2:00', bikeSpeed:'25', t2:'2:00', runPace:'5:00' };
+const TIME_FIELDS = ['swimPace', 't1', 't2', 'runPace'];
+const STORAGE_KEY = 'triathlonCalcState';
+
 function parseMS(str){
   if(!str) return 0;
   const parts = str.split(':').map(Number);
   if(parts.length===2) return parts[0]*60+parts[1];
   return Number(str)||0;
+}
+
+function isValidTime(str){
+  if(str == null) return false;
+  const s = String(str).trim();
+  if(/^\d{1,3}:\d{2}$/.test(s)) return Number(s.split(':')[1]) < 60;
+  return /^\d+(\.\d+)?$/.test(s);
+}
+function isValidNumber(str){
+  if(str == null) return false;
+  const s = String(str).trim();
+  return /^\d+(\.\d+)?$/.test(s) && Number(s) > 0;
+}
+function validateInput(input){
+  const valid = TIME_FIELDS.includes(input.id) ? isValidTime(input.value) : isValidNumber(input.value);
+  input.classList.toggle('invalid', !valid);
+  return valid;
+}
+
+function saveState(){
+  try{
+    const values = {};
+    Object.keys(DEFAULTS).forEach(id=>{ values[id] = document.getElementById(id).value; });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ activeIdx, values }));
+  }catch(e){}
+}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const state = JSON.parse(raw);
+    if(typeof state.activeIdx === 'number' && PRESETS[state.activeIdx]) activeIdx = state.activeIdx;
+    if(state.values){
+      Object.keys(state.values).forEach(id=>{
+        const el = document.getElementById(id);
+        if(el && state.values[id]) el.value = state.values[id];
+      });
+    }
+  }catch(e){}
+}
+
+function resetToDefaults(){
+  Object.keys(DEFAULTS).forEach(id=>{ document.getElementById(id).value = DEFAULTS[id]; });
+  activeIdx = 0;
+  try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+  renderPresets();
+  calculate();
+  refreshAllTracks();
 }
 function fmtHMS(totalSec){
   totalSec = Math.round(totalSec);
@@ -230,7 +359,7 @@ function renderPresets(){
     const btn = document.createElement('button');
     btn.className = 'preset-btn' + (i===activeIdx ? ' active' : '');
     btn.innerHTML = `${p.name}<span class="preset-dist">${p.swim>=1000 ? (p.swim/1000)+'km' : p.swim+'m'} · ${p.bike}km · ${p.run}km</span>`;
-    btn.addEventListener('click', ()=>{ activeIdx=i; renderPresets(); calculate(); });
+    btn.addEventListener('click', ()=>{ activeIdx=i; renderPresets(); calculate(); saveState(); });
     el.appendChild(btn);
   });
   const p = PRESETS[activeIdx];
@@ -240,11 +369,17 @@ function renderPresets(){
 
 function calculate(){
   const p = PRESETS[activeIdx];
-  const swimSecPer100 = parseMS(document.getElementById('swimPace').value);
-  const t1Sec = parseMS(document.getElementById('t1').value);
-  const bikeSpeed = Number(document.getElementById('bikeSpeed').value) || 0;
-  const t2Sec = parseMS(document.getElementById('t2').value);
-  const runSecPerKm = parseMS(document.getElementById('runPace').value);
+  const swimInput = document.getElementById('swimPace');
+  const t1Input = document.getElementById('t1');
+  const bikeInput = document.getElementById('bikeSpeed');
+  const t2Input = document.getElementById('t2');
+  const runInput = document.getElementById('runPace');
+
+  const swimSecPer100 = validateInput(swimInput) ? parseMS(swimInput.value) : 0;
+  const t1Sec = validateInput(t1Input) ? parseMS(t1Input.value) : 0;
+  const bikeSpeed = validateInput(bikeInput) ? Number(bikeInput.value) : 0;
+  const t2Sec = validateInput(t2Input) ? parseMS(t2Input.value) : 0;
+  const runSecPerKm = validateInput(runInput) ? parseMS(runInput.value) : 0;
 
   const swimSec = (p.swim/100) * swimSecPer100;
   const bikeSec = bikeSpeed>0 ? (p.bike/bikeSpeed)*3600 : 0;
@@ -271,9 +406,65 @@ function calculate(){
   document.getElementById('totalValue').textContent = fmtHMS(cum);
 }
 
-document.querySelectorAll('input').forEach(inp=> inp.addEventListener('input', calculate));
+function trackValueOf(track){
+  const input = document.getElementById(track.dataset.target);
+  return track.dataset.kind === 'time' ? parseMS(input.value) : (Number(input.value) || 0);
+}
+
+function updateTrackVisual(track){
+  const min = parseFloat(track.dataset.min), max = parseFloat(track.dataset.max);
+  const val = trackValueOf(track);
+  const pct = Math.min(100, Math.max(0, (val - min) / (max - min) * 100));
+  track.querySelector('.pace-fill').style.width = pct + '%';
+  track.querySelector('.pace-handle').style.left = pct + '%';
+}
+
+function refreshAllTracks(){
+  document.querySelectorAll('.pace-track').forEach(updateTrackVisual);
+}
+
+function setTrackFromClientX(track, clientX){
+  const rect = track.getBoundingClientRect();
+  let ratio = (clientX - rect.left) / rect.width;
+  ratio = Math.min(1, Math.max(0, ratio));
+  const min = parseFloat(track.dataset.min), max = parseFloat(track.dataset.max);
+  const input = document.getElementById(track.dataset.target);
+  let val = min + ratio * (max - min);
+  if(track.dataset.kind === 'time'){
+    val = Math.round(val / 5) * 5;
+    const m = Math.floor(val / 60);
+    const s = Math.round(val % 60);
+    input.value = `${m}:${String(s).padStart(2,'0')}`;
+  } else {
+    val = Math.round(val * 2) / 2;
+    input.value = String(val);
+  }
+  input.dispatchEvent(new Event('input', {bubbles:true}));
+}
+
+document.querySelectorAll('.pace-track').forEach(track=>{
+  track.addEventListener('pointerdown', e=>{
+    track.setPointerCapture(e.pointerId);
+    setTrackFromClientX(track, e.clientX);
+  });
+  track.addEventListener('pointermove', e=>{
+    if(e.buttons !== 1) return;
+    setTrackFromClientX(track, e.clientX);
+  });
+});
+
+document.querySelectorAll('input').forEach(inp=> inp.addEventListener('input', ()=>{
+  calculate();
+  refreshAllTracks();
+  saveState();
+}));
+
+document.getElementById('resetBtn').addEventListener('click', resetToDefaults);
+
+loadState();
 renderPresets();
 calculate();
+refreshAllTracks();
 </script>
 </body>
 </html>
