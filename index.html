@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Calculadora de Pace — Triathlon</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --bg:#f7f6f2; --surface:#ffffff; --border:#e1e0d9;
+    --text:#131318; --text-2:#52514e; --text-muted:#898781;
+    --accent:#2a78d6; --accent-bg:#e6f1fb;
+    --radius:12px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; padding:32px 16px 64px; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  .wrap{max-width:720px; margin:0 auto;}
+  h1{font-size:24px; font-weight:600; margin:0 0 4px;}
+  .subtitle{font-size:14px; color:var(--text-2); margin:0 0 24px;}
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:16px;
+    padding:22px 24px; margin-bottom:20px;
+  }
+  h2{font-size:15px; font-weight:600; margin:0 0 14px; color:var(--text-2); text-transform:uppercase; letter-spacing:0.03em;}
+
+  .presets{display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; margin-bottom:8px;}
+  .preset-btn{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:12px 8px; font-family:inherit; font-size:14px; font-weight:600; color:var(--text-2);
+    cursor:pointer; text-align:center; transition:all .12s;
+  }
+  .preset-btn:hover{border-color:var(--accent);}
+  .preset-btn.active{background:var(--accent-bg); border-color:var(--accent); color:var(--accent);}
+  .preset-dist{font-size:11px; font-weight:400; color:var(--text-muted); display:block; margin-top:2px;}
+  .preset-btn.active .preset-dist{color:var(--accent);}
+
+  .dist-row{display:flex; gap:16px; margin-top:14px; font-size:13px; color:var(--text-2); flex-wrap:wrap;}
+  .dist-row b{color:var(--text);}
+
+  .field-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:16px;}
+  .field{display:flex; flex-direction:column; gap:6px;}
+  .field label{font-size:12px; color:var(--text-muted);}
+  .field .unit{font-size:11px; color:var(--text-muted); font-weight:400;}
+  input[type=text]{
+    border:1px solid var(--border); border-radius:8px; padding:10px 12px; font-size:15px;
+    font-family:inherit; color:var(--text); background:var(--surface); width:100%;
+  }
+  input[type=text]:focus{outline:none; border-color:var(--accent);}
+
+  table{width:100%; border-collapse:collapse; font-size:14px; margin-top:4px;}
+  th,td{text-align:right; padding:10px 8px; border-bottom:1px solid var(--border);}
+  th:first-child,td:first-child{text-align:left;}
+  th{color:var(--text-muted); font-weight:500; font-size:11px; text-transform:uppercase; letter-spacing:0.02em;}
+  tr.total td{font-weight:700; font-size:16px; border-top:2px solid var(--border); border-bottom:none;}
+  tr.total{background:var(--accent-bg);}
+  tr.total td:first-child{border-radius:8px 0 0 8px;}
+  tr.total td:last-child{border-radius:0 8px 8px 0;}
+
+  footer{text-align:center; font-size:12px; color:var(--text-muted); margin-top:24px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Calculadora de pace — Triathlon</h1>
+  <p class="subtitle">Escolha a prova, ajuste os seus paces e veja o tempo estimado de cada etapa.</p>
+
+  <div class="card">
+    <h2>Distância da prova</h2>
+    <div class="presets" id="presets"></div>
+    <div class="dist-row" id="distRow"></div>
+  </div>
+
+  <div class="card">
+    <h2>Seus paces</h2>
+    <div class="field-grid">
+      <div class="field">
+        <label>Natação <span class="unit">(min:seg / 100m)</span></label>
+        <input type="text" id="swimPace" value="2:00">
+      </div>
+      <div class="field">
+        <label>Transição 1 <span class="unit">(min:seg)</span></label>
+        <input type="text" id="t1" value="2:00">
+      </div>
+      <div class="field">
+        <label>Bike <span class="unit">(km/h)</span></label>
+        <input type="text" id="bikeSpeed" value="25">
+      </div>
+      <div class="field">
+        <label>Transição 2 <span class="unit">(min:seg)</span></label>
+        <input type="text" id="t2" value="2:00">
+      </div>
+      <div class="field">
+        <label>Corrida <span class="unit">(min:seg / km)</span></label>
+        <input type="text" id="runPace" value="5:00">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Tempo estimado</h2>
+    <table>
+      <thead>
+        <tr><th>Etapa</th><th>Tempo</th><th>Acumulado</th></tr>
+      </thead>
+      <tbody id="resultsBody"></tbody>
+    </table>
+  </div>
+
+  <footer>Calculadora de pace para triathlon · Sprint, Olímpico, Meio Ironman e Ironman</footer>
+</div>
+
+<script>
+const PRESETS = [
+  { name:'Sprint',       swim:750,  bike:20,  run:5 },
+  { name:'Olímpico',     swim:1500, bike:40,  run:10 },
+  { name:'Meio Ironman', swim:1900, bike:90,  run:21.1 },
+  { name:'Ironman',      swim:3800, bike:180, run:42.2 }
+];
+let activeIdx = 0;
+
+function parseMS(str){
+  if(!str) return 0;
+  const parts = str.split(':').map(Number);
+  if(parts.length===2) return parts[0]*60+parts[1];
+  return Number(str)||0;
+}
+function fmtHMS(totalSec){
+  totalSec = Math.round(totalSec);
+  const h = Math.floor(totalSec/3600);
+  const m = Math.floor((totalSec%3600)/60);
+  const s = totalSec%60;
+  const mm = String(m).padStart(2,'0');
+  const ss = String(s).padStart(2,'0');
+  return h>0 ? `${h}:${mm}:${ss}` : `${m}:${ss}`;
+}
+
+function renderPresets(){
+  const el = document.getElementById('presets');
+  el.innerHTML = '';
+  PRESETS.forEach((p,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'preset-btn' + (i===activeIdx ? ' active' : '');
+    btn.innerHTML = `${p.name}<span class="preset-dist">${p.swim>=1000 ? (p.swim/1000)+'km' : p.swim+'m'} · ${p.bike}km · ${p.run}km</span>`;
+    btn.addEventListener('click', ()=>{ activeIdx=i; renderPresets(); calculate(); });
+    el.appendChild(btn);
+  });
+  const p = PRESETS[activeIdx];
+  document.getElementById('distRow').innerHTML =
+    `<span>Natação: <b>${p.swim} m</b></span><span>Bike: <b>${p.bike} km</b></span><span>Corrida: <b>${p.run} km</b></span>`;
+}
+
+function calculate(){
+  const p = PRESETS[activeIdx];
+  const swimSecPer100 = parseMS(document.getElementById('swimPace').value);
+  const t1Sec = parseMS(document.getElementById('t1').value);
+  const bikeSpeed = Number(document.getElementById('bikeSpeed').value) || 0;
+  const t2Sec = parseMS(document.getElementById('t2').value);
+  const runSecPerKm = parseMS(document.getElementById('runPace').value);
+
+  const swimSec = (p.swim/100) * swimSecPer100;
+  const bikeSec = bikeSpeed>0 ? (p.bike/bikeSpeed)*3600 : 0;
+  const runSec = p.run * runSecPerKm;
+
+  const legs = [
+    ['Natação', swimSec],
+    ['T1', t1Sec],
+    ['Bike', bikeSec],
+    ['T2', t2Sec],
+    ['Corrida', runSec]
+  ];
+
+  let cum = 0;
+  const tbody = document.getElementById('resultsBody');
+  tbody.innerHTML = '';
+  legs.forEach(([name,sec])=>{
+    cum += sec;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${name}</td><td>${fmtHMS(sec)}</td><td>${fmtHMS(cum)}</td>`;
+    tbody.appendChild(tr);
+  });
+  const trTotal = document.createElement('tr');
+  trTotal.className = 'total';
+  trTotal.innerHTML = `<td>Total</td><td></td><td>${fmtHMS(cum)}</td>`;
+  tbody.appendChild(trTotal);
+}
+
+document.querySelectorAll('input').forEach(inp=> inp.addEventListener('input', calculate));
+renderPresets();
+calculate();
+</script>
+</body>
+</html>
